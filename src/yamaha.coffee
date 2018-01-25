@@ -74,14 +74,12 @@ volumeUp = (robot, res) ->
     vol = 10
     res.send "volume up is limited to 10dB at once"
   res.send "volume up #{vol}dB"
-  yamaha.volumeUp(vol)
-    .catch (err) ->
-
+  yamaha.volumeUp(vol*10)
 
 volumeDown = (robot, res) ->
   vol = parseInt(res.match[1])
   res.send "volume down #{vol}dB"
-  yamaha.volumeDown(vol)
+  yamaha.volumeDown(vol*10)
     .catch (err) ->
 
 inputList = (robot, res) ->
