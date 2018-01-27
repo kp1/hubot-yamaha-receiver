@@ -35,6 +35,7 @@ module.exports = (robot) ->
   robot.respond /y\s+vol\s+down\s+([0-9]+)$/, (res) -> volumeDown robot, res
   robot.respond /y\s+input\s+list$/, (res)-> inputList robot, res
   robot.respond /y\s+select\s+(.*)$/, (res) -> selectInput robot, res
+  robot.respond /y\s+alias\s+([^=]*)=(.*)$/, (res) -> aliasInput robot, res
 
 onError = (res, err) ->
   res.send "error [#{err.message}]"
@@ -88,8 +89,19 @@ inputList = (robot, res) ->
     , (err) ->
       onError(res, err)
 
+ALIAS_PREFIX= '_input_'
+
 selectInput = (robot, res) ->
-  input = res.match[1]
+  input = robot.brain.get(ALIAS_PREFIX + res.match[1]) || res.match[1]
   res.send "change to #{input}"
   yamaha.setMainInputTo(input)
 
+aliasInput = (robot, res) ->
+  alias = res.match[1]
+  input = res.match[2]
+  if input == ''
+    res.send "forget alias #{alias}"
+    input = null
+  else
+    res.send "alias #{alias} to #{input}"
+  robot.brain.set ALIAS_PREFIX + alias, input
