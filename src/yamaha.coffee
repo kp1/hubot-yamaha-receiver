@@ -79,7 +79,7 @@ volumeUp = (robot, res) ->
     vol = 10
     res.send "volume up is limited to 10dB at once"
   res.send "volume up #{vol}dB"
-  exec(yamaha.movuleUp(vol*10), res)
+  exec(yamaha.volumeUp(vol*10), res)
 
 volumeDown = (robot, res) ->
   vol = parseInt(res.match[1])
