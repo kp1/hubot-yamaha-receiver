@@ -28,13 +28,13 @@ yamaha = new YamahaAPI()    # search by SSDP
 
 module.exports = (robot) ->
   robot.respond /y\s+on$/, (res) -> powerOn robot, res
-  robot.respond /y\s+off$/, (res) -> pwerOff robot, res
+  robot.respond /y\s+off$/, (res) -> powerOff robot, res
   robot.respond /y\s+mute(\s+on)?$/, (res) -> muteOn robot, res
   robot.respond /y\s+mute\s+off?$/, (res) -> muteOff robot, res
   robot.respond /y\s+vol\s+up\s+([0-9]+)$/, (res) -> volumeUp robot, res
   robot.respond /y\s+vol\s+down\s+([0-9]+)$/, (res) -> volumeDown robot, res
   robot.respond /y\s+input\s+list$/, (res)-> inputList robot, res
-
+  robot.respond /y\s+select\s+(.*)$/, (res) -> selectInput robot, res
 
 onError = (res, err) ->
   res.send "error [#{err.message}]"
@@ -45,28 +45,28 @@ onSuccess = (res, method = null) ->
   else
     res.send "Success!"
 
-powerOn = (robot, res) ->
-  res.send 'power on'
-  yamaha.powerOn()
-    .catch (err) ->
-
-powerOff = (robot, res) ->
-  res.send 'power off'
-  yamaha.powerOff()
+exec = (promise, res, method = null) ->
+  promise
+    .then ->
+      onSuccess(res, method)
     .catch (err) ->
       onError(res, err)
 
+powerOn = (robot, res) ->
+  res.send 'power on'
+  exec(yamaha.powerOn(), res)
+
+powerOff = (robot, res) ->
+  res.send 'power off'
+  exec(yamaha.powerOff(), res)
 
 muteOn = (robot, res) ->
-  res.send 'mute on!'
-  yamaha.muteOn()
-    .catch (err) ->
-
+  res.send 'mute on'
+  exec(yamaha.muteOn(), res)
 
 muteOff = (robot, res) ->
-  res.send 'mute off!'
-  yamaha.muteOff()
-    .catch (err) ->
+  res.send 'mute off'
+  exec(yamaha.muteOff(), res)
 
 volumeUp = (robot, res) ->
   vol = parseInt(res.match[1])
@@ -74,13 +74,12 @@ volumeUp = (robot, res) ->
     vol = 10
     res.send "volume up is limited to 10dB at once"
   res.send "volume up #{vol}dB"
-  yamaha.volumeUp(vol*10)
+  exec(yamaha.movuleUp(vol*10), res)
 
 volumeDown = (robot, res) ->
   vol = parseInt(res.match[1])
   res.send "volume down #{vol}dB"
-  yamaha.volumeDown(vol*10)
-    .catch (err) ->
+  exec(yamaha.volumeDown(vol*10), res)
 
 inputList = (robot, res) ->
   yamaha.getAvailableInputs()
@@ -89,4 +88,8 @@ inputList = (robot, res) ->
     , (err) ->
       onError(res, err)
 
+selectInput = (robot, res) ->
+  input = res.match[1]
+  res.send "change to #{input}"
+  yamaha.setMainInputTo(input)
 
