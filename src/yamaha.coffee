@@ -8,11 +8,14 @@
 #  
 #
 # Commands:
-#  hubot y (on|off)              - control receiver power
-#  hubot y mute                  - mute audio
-#  hubot y mute                  - cancel mute audio
-#  hubot y vol (up|down) <digit> - volume up or down <digit>dB
-#  hubot y input list            - show receivers input list
+#  hubot y (on|off)                - control receiver power
+#  hubot y mute                    - mute audio
+#  hubot y mute                    - cancel mute audio
+#  hubot y vol (up|down) <digit>   - volume up or down <digit>dB
+#  hubot y input list              - show receivers input list
+#  hubot y select <input>          - select input to <input> or alias name
+#  hubot y alias <alias>=<input>   - add or forget alias
+#
 #
 # Notes:
 #  
@@ -52,6 +55,7 @@ exec = (promise, res, method = null) ->
       onSuccess(res, method)
     .catch (err) ->
       onError(res, err)
+  return promise
 
 powerOn = (robot, res) ->
   res.send 'power on'
@@ -83,18 +87,16 @@ volumeDown = (robot, res) ->
   exec(yamaha.volumeDown(vol*10), res)
 
 inputList = (robot, res) ->
-  yamaha.getAvailableInputs()
+  exec(yamaha.getAvailableInputs(), res)
     .then (inputs) ->
       res.send inputs.join '\n'
-    , (err) ->
-      onError(res, err)
 
 ALIAS_PREFIX= '_input_'
 
 selectInput = (robot, res) ->
   input = robot.brain.get(ALIAS_PREFIX + res.match[1]) || res.match[1]
   res.send "change to #{input}"
-  yamaha.setMainInputTo(input)
+  exec(yamaha.setMainInputTo(input), res)
 
 aliasInput = (robot, res) ->
   alias = res.match[1]
